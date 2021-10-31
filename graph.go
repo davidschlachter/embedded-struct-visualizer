@@ -21,7 +21,7 @@ func buildDOTFile() string {
 
 func getFullStructName(s string, pkg string) string {
 	if strings.Contains(s, ".") { // struct name includes package name
-		return s
+		return "\"" + s + "\""
 	}
 
 	return "\"" + pkg + "." + s + "\""
