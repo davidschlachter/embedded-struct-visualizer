@@ -106,7 +106,7 @@ func isStruct(s string) bool {
 	if len(tokens) >= 2 {
 		t := cleanExtras(tokens[1])
 		if types[t] || strings.HasPrefix(tokens[1], "map[") || strings.HasPrefix(tokens[1], "*map[") {
-			if t == "chan" {
+			if t == "chan" && len(tokens) > 2 {
 				return isStruct(tokens[1] + " " + tokens[2])
 			}
 			return false
