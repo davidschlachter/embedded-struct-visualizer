@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -75,8 +76,8 @@ func TestParseStructs(t *testing.T) {
 			}
 		}
 		if !found {
-			fmt.Println(expectedStructs)
-			t.Fatalf("Could not find expected Struct: %+v", s)
+			fmt.Printf("Expected structs: %v\n", expectedStructs)
+			t.Fatalf("ERROR: Could not find Struct: %+v", s)
 		}
 	}
 }

@@ -23,4 +23,5 @@ var types = map[string]bool{
 	"func":          true,
 	"chan":          true,
 	"bool":          true,
+	"interface":     true,
 }

@@ -123,7 +123,10 @@ func isStruct(s string) bool {
 }
 
 func getStruct(s string) string {
-	tokens := strings.Fields(cleanTags(s))
+	tokens := strings.Fields(cleanTags(s)) // TODO: handle complex maps
+	if len(tokens) == 0 {
+		return ""
+	}
 	if len(tokens) == 1 {
 		return cleanExtras(tokens[0])
 	}
@@ -132,7 +135,7 @@ func getStruct(s string) string {
 			return cleanExtras(tokens[2])
 		}
 	}
-	if len(tokens) >= 2 {
+	if len(tokens) >= 2 { // TODO: allow multiple declarations e.g. "A, B, C string"
 		return cleanExtras(tokens[1])
 	}
 	return "INVALID: " + s
@@ -152,17 +155,13 @@ func cleanExtras(q string) string {
 
 func cleanTags(q string) string {
 	s := []byte(q)
-	slashCount := 0
 	j := 0
-	for _, b := range s {
+	for i, b := range s {
 		if b == '`' {
 			break
 		}
-		if b == '/' {
-			slashCount++
-			if slashCount > 1 {
-				break
-			}
+		if b == '/' && i+1 < len(s) && s[i+1] == '/' {
+			break
 		}
 		s[j] = b
 		j++
