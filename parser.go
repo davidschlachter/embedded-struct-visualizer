@@ -2,12 +2,14 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"strings"
 )
 
+// recurse through a file tree, finding Go source files
 func walk(path string, d fs.DirEntry, err error) error {
 	if err != nil {
 		return err
@@ -37,17 +39,16 @@ func readFile(file io.Reader, path string) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		line = scanner.Text()
+		line = strings.TrimSpace(scanner.Text())
 
 		// Identify the package name
 		if pkg == "" && strings.HasPrefix(line, "package ") {
 			pkg = strings.Replace(line, "package ", "", 1)
-			pkg = strings.TrimSpace(pkg)
 		}
 
 		// Find all structs defined in this file
-		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "type ") && strings.HasSuffix(line, " struct {") {
+			log(line)
 			parseStruct(scanner, line, pkg, path)
 		}
 
@@ -69,6 +70,7 @@ func parseStruct(scanner *bufio.Scanner, line string, pkg string, path string) {
 	// Read the fields of this struct
 	for scanner.Scan() {
 		structLine := strings.TrimSpace(scanner.Text())
+		log(structLine)
 		if structLine == "}" {
 			break
 		}
@@ -93,6 +95,7 @@ func parseStruct(scanner *bufio.Scanner, line string, pkg string, path string) {
 	}
 
 	// Add to the list
+	log(fmt.Sprintf("%+v\n", s))
 	structsList = append(structsList, s)
 }
 

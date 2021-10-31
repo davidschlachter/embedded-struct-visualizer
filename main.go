@@ -18,6 +18,7 @@ type Struct struct {
 }
 
 var structsList []Struct
+var verbose *bool
 
 func main() {
 	var (
@@ -28,6 +29,7 @@ func main() {
 	)
 
 	outputPath := flags.String("out", "", "write to file instead of stdout")
+	verbose = flags.Bool("v", false, "verbose logging")
 	flags.Usage = help
 	flags.Parse(os.Args[1:])
 
