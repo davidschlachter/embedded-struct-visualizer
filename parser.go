@@ -64,6 +64,7 @@ func parseStruct(scanner *bufio.Scanner, line string, pkg string, path string) {
 		Name:     name,
 		Package:  pkg,
 		FilePath: path,
+		Embeds:   make(map[string]bool),
 	}
 	// Read the fields of this struct
 	for scanner.Scan() {
@@ -85,7 +86,10 @@ func parseStruct(scanner *bufio.Scanner, line string, pkg string, path string) {
 		if !isStruct(structLine) {
 			continue
 		}
-		s.Embeds = append(s.Embeds, getStruct(structLine))
+		field := getStruct(structLine)
+		if field != "" {
+			s.Embeds[field] = true
+		}
 	}
 
 	// Add to the list

@@ -67,20 +67,26 @@ func TestParseStructs(t *testing.T) {
 		for _, e := range expectedStructs {
 			if s.Name == e.Name && s.Package == e.Package && s.FilePath == e.FilePath && len(s.Embeds) == len(e.Embeds) {
 				found = true
+				for k := range e.Embeds {
+					if !s.Embeds[k] {
+						found = false
+					}
+				}
 			}
 		}
 		if !found {
+			fmt.Println(expectedStructs)
 			t.Fatalf("Could not find expected Struct: %+v", s)
 		}
 	}
 }
 
 var expectedStructs = []Struct{
-	{Name: "A", Package: "main", FilePath: "./testString1", Embeds: []string{"M"}},
-	{Name: "M", Package: "main", FilePath: "./testString1", Embeds: []string{}},
-	{Name: "Z", Package: "main", FilePath: "./testString1", Embeds: []string{"A", "M"}},
-	{Name: "A", Package: "cmd", FilePath: "./testString2", Embeds: []string{"N"}},
-	{Name: "N", Package: "cmd", FilePath: "./testString2", Embeds: []string{"q.Node"}},
-	{Name: "B", Package: "cmd", FilePath: "./testString2", Embeds: []string{"N", "A", "F"}},
-	{Name: "F", Package: "cmd", FilePath: "./testString2", Embeds: []string{"time.Time"}},
+	{Name: "A", Package: "main", FilePath: "./testString1", Embeds: map[string]bool{"M": true}},
+	{Name: "M", Package: "main", FilePath: "./testString1", Embeds: map[string]bool{}},
+	{Name: "Z", Package: "main", FilePath: "./testString1", Embeds: map[string]bool{"M": true, "A": true}},
+	{Name: "A", Package: "cmd", FilePath: "./testString2", Embeds: map[string]bool{"N": true}},
+	{Name: "N", Package: "cmd", FilePath: "./testString2", Embeds: map[string]bool{"q.Node": true}},
+	{Name: "B", Package: "cmd", FilePath: "./testString2", Embeds: map[string]bool{"N": true, "A": true, "F": true}},
+	{Name: "F", Package: "cmd", FilePath: "./testString2", Embeds: map[string]bool{"time.Time": true}},
 }

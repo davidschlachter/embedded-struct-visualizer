@@ -14,7 +14,7 @@ type Struct struct {
 	Name     string
 	Package  string
 	FilePath string
-	Embeds   []string
+	Embeds   map[string]bool
 }
 
 var structsList []Struct

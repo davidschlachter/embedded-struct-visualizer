@@ -10,7 +10,7 @@ func buildDOTFile() string {
 			continue
 		}
 		g = append(g, getFullStructName(s.Name, s.Package)+" -> { "...)
-		for _, e := range s.Embeds {
+		for e := range s.Embeds {
 			g = append(g, getFullStructName(e, s.Package)+" "...)
 		}
 		g = append(g, "};\n"...)
