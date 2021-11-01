@@ -40,6 +40,7 @@ type N struct {
 	node                                     q.Node
 	Tags                                     map[string][]string
 	W, X, Y, Z string
+	Gamma   interface{}
 }
 
 type B struct {
