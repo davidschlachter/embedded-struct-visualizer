@@ -10,7 +10,7 @@ import (
 )
 
 // recurse through a file tree, finding Go source files
-func walk(path string, d fs.DirEntry, err error) error {
+func findGoFiles(path string, d fs.DirEntry, err error) error {
 	if err != nil {
 		return err
 	}
@@ -22,6 +22,7 @@ func walk(path string, d fs.DirEntry, err error) error {
 
 	file, err := os.Open(path)
 	if err != nil {
+		fmt.Printf("Could not open file %s: %v\n", path, err)
 		os.Exit(1)
 	}
 	defer file.Close()
@@ -39,11 +40,12 @@ func readFile(file io.Reader, path string) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		line = strings.TrimSpace(scanner.Text())
+		line = removeComments(scanner, scanner.Text())
 
 		// Identify the package name
 		if pkg == "" && strings.HasPrefix(line, "package ") {
 			pkg = strings.Replace(line, "package ", "", 1)
+			continue
 		}
 
 		// Find all structs defined in this file
@@ -55,6 +57,7 @@ func readFile(file io.Reader, path string) {
 	}
 
 	if err := scanner.Err(); err != nil {
+		fmt.Printf("Error reading file %s: %v\n", path, err)
 		os.Exit(1)
 	}
 }
@@ -69,12 +72,12 @@ func parseStruct(scanner *bufio.Scanner, line string, pkg string, path string) {
 	}
 	// Read the fields of this struct
 	for scanner.Scan() {
-		structLine := strings.TrimSpace(scanner.Text())
+		structLine := removeComments(scanner, scanner.Text())
 		log(structLine)
 		if structLine == "}" {
 			break
 		}
-		if strings.HasPrefix(structLine, "//") || structLine == "" {
+		if structLine == "" {
 			continue
 		}
 		if strings.HasSuffix(structLine, " struct {") {
@@ -85,12 +88,11 @@ func parseStruct(scanner *bufio.Scanner, line string, pkg string, path string) {
 			}
 			continue
 		}
-		if !isStruct(structLine) {
-			continue
-		}
-		field := getStruct(structLine)
-		if field != "" {
-			s.Embeds[field] = true
+		fields, hasStructs := getStructs(structLine)
+		if hasStructs {
+			for _, f := range fields {
+				s.Embeds[f] = true
+			}
 		}
 	}
 
@@ -99,50 +101,65 @@ func parseStruct(scanner *bufio.Scanner, line string, pkg string, path string) {
 	structsList = append(structsList, s)
 }
 
+func getStructs(s string) ([]string, bool) {
+	tokens := strings.Fields(cleanTags(s))
+	t := tokens[len(tokens)-1]
+	if types[t] || strings.Contains(s, "func") {
+		return []string{""}, false
+	}
+	if strings.HasPrefix(t, "map[") || strings.HasPrefix(t, "*map[") {
+		return parseMap(t)
+	}
+
+	return []string{cleanPointers(t)}, true
+}
+
+func parseMap(s string) ([]string, bool) {
+	var structs []string
+	var hasStructs bool
+	mapFields := strings.FieldsFunc(s, func(r rune) bool {
+		return r == '[' || r == ']'
+	})
+	for _, f := range mapFields {
+		fmt.Println(f)
+		if !types[f] {
+			structs = append(structs, cleanPointers(f))
+		}
+	}
+	if len(structs) > 0 {
+		hasStructs = true
+	}
+	return structs, hasStructs
+}
+
 func getName(s string) string {
 	s = strings.Replace(s, "type ", "", 1)
 	s = strings.Replace(s, " struct {", "", 1)
 	return s
 }
 
-func isStruct(s string) bool {
-	tokens := strings.Fields(cleanTags(s))
-	if len(tokens) == 1 {
-		return true
-	}
-	if len(tokens) >= 2 {
-		t := cleanExtras(tokens[1])
-		if types[t] || strings.HasPrefix(tokens[1], "map[") || strings.HasPrefix(tokens[1], "*map[") {
-			if t == "chan" && len(tokens) > 2 {
-				return isStruct(tokens[1] + " " + tokens[2])
+func removeComments(scanner *bufio.Scanner, line string) string {
+	s := []byte(line)
+	j := 0
+	for i, b := range s {
+		if b == '/' && i+1 < len(s) && s[i+1] == '/' {
+			break
+		}
+		if b == '/' && i+1 < len(s) && s[i+1] == '*' {
+			for scanner.Scan() {
+				if strings.Contains(scanner.Text(), "*/") {
+					break
+				}
 			}
-			return false
+			break
 		}
+		j++
 	}
-	return true
+	return strings.TrimSpace(string(s[:j]))
 }
 
-func getStruct(s string) string {
-	tokens := strings.Fields(cleanTags(s)) // TODO: handle complex maps
-	if len(tokens) == 0 {
-		return ""
-	}
-	if len(tokens) == 1 {
-		return cleanExtras(tokens[0])
-	}
-	if len(tokens) == 3 {
-		if tokens[1] == "chan" {
-			return cleanExtras(tokens[2])
-		}
-	}
-	if len(tokens) >= 2 { // TODO: allow multiple declarations e.g. "A, B, C string"
-		return cleanExtras(tokens[1])
-	}
-	return "INVALID: " + s
-}
-
-func cleanExtras(q string) string {
-	s := []byte(q)
+func cleanPointers(token string) string {
+	s := []byte(token)
 	j := 0
 	for _, b := range s {
 		if ('a' <= b && b <= 'z') || ('A' <= b && b <= 'Z') || ('0' <= b && b <= '9') || b == '.' {
@@ -153,18 +170,14 @@ func cleanExtras(q string) string {
 	return string(s[:j])
 }
 
-func cleanTags(q string) string {
-	s := []byte(q)
+func cleanTags(token string) string {
+	s := []byte(token)
 	j := 0
-	for i, b := range s {
+	for _, b := range s {
 		if b == '`' {
 			break
 		}
-		if b == '/' && i+1 < len(s) && s[i+1] == '/' {
-			break
-		}
-		s[j] = b
 		j++
 	}
-	return string(s[:j])
+	return strings.TrimSpace(string(s[:j]))
 }

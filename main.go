@@ -44,7 +44,7 @@ func main() {
 		}
 	}
 
-	_ = filepath.WalkDir(searchPath, walk)
+	_ = filepath.WalkDir(searchPath, findGoFiles)
 
 	graph := buildDOTFile()
 

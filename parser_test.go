@@ -62,7 +62,6 @@ func TestParseStructs(t *testing.T) {
 		t.Fatalf("len(structsList) != len(expectedStructs)")
 	}
 	// n^2 complexity, improve this
-	// TODO: actually check values in Embeds
 	for _, s := range structsList {
 		found := false
 		for _, e := range expectedStructs {
