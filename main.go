@@ -61,6 +61,7 @@ func help() {
 	fmt.Printf("Usage: %s [OPTIONS] DirToScan\n", os.Args[0])
 	fmt.Printf("If the directory to scan is not provided, it defaults to './'\n")
 	fmt.Printf("OPTIONS:\n")
-	fmt.Printf("  -%s: %s\n", "out", "path to output file (default: write to stdout)")
+	fmt.Printf("  -out <file>  path to output file (default: write to stdout)\n")
+	fmt.Printf("  -v           verbose logging\n")
 	os.Exit(1)
 }
