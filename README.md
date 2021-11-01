@@ -58,7 +58,7 @@ Options:
 
 ```
 $ embedded-struct-visualizer -h
-Usage: embedded-struct-visualizer [OPTIONS] DirToScan                                                        
+Usage: embedded-struct-visualizer [OPTIONS] DirToScan
 If the directory to scan is not provided, it defaults to './'
 OPTIONS:
   -out <file>  path to output file (default: write to stdout)
