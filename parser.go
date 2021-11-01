@@ -121,7 +121,6 @@ func parseMap(s string) ([]string, bool) {
 		return r == '[' || r == ']'
 	})
 	for _, f := range mapFields {
-		fmt.Println(f)
 		if !types[f] {
 			structs = append(structs, cleanPointers(f))
 		}
