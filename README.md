@@ -1,18 +1,19 @@
-# Visualize the hierarchy of embedded structs
+# Visualize a hierarchy of embedded Go structs
 
 This tool scans a directory of Go source code files to create a visualization of struct embedding in the project. This can be useful for navigating the data structures of complex projects, or identifying dependencies on particular structures.
 
 # Example
 
-Given the following input file:
+This figure would be generated from the input file below:
+
+![visualizer screenshot](https://user-images.githubusercontent.com/8271268/139614622-01693a08-4aff-4c47-81e2-764a7e4ca0ef.png)
 
 ```go
 package main
 
 import (
 	"time"
-
-	"github.com/davidschlachter/embedded-struct-visualizer/user"
+	"domain.tld/user"
 )
 
 type A struct {
@@ -37,9 +38,7 @@ type H struct {
 
 ```
 
-The following figure would be generated:
 
-[IMAGE PLACEHOLDER]
 
 # Usage
 
