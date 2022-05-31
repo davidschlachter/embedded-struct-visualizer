@@ -4,7 +4,10 @@ import "strings"
 
 func buildDOTFile() string {
 	g := []byte{}
-	g = append(g, "digraph {\n"...)
+	g = append(g, `
+digraph {
+rankdir="LR"
+`...)
 	for _, s := range structsList {
 		if len(s.Embeds) == 0 {
 			continue
