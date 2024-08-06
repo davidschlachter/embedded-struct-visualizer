@@ -62,6 +62,11 @@ Usage: embedded-struct-visualizer [OPTIONS] DirToScan
 If the directory to scan is not provided, it defaults to './'
 OPTIONS:
   -out <file>  path to output file (default: write to stdout)
+  -rankdir <direction> graphs direction (default: LR, enum: TB,LR,BT,RL)
+  -exclude-pkg path to exclude pkg config file, format(default: empty):
+     eg: exclude gopkg.in/guregu/null.v3 and models/MyStuct
+       prefix:null.
+       models.MyStuct
   -v           verbose logging
 ```
 

@@ -19,6 +19,7 @@ type Struct struct {
 
 var structsList []Struct
 var verbose *bool
+var excludePkg []string
 
 func main() {
 	var (
@@ -29,10 +30,18 @@ func main() {
 	)
 
 	outputPath := flags.String("out", "", "write to file instead of stdout")
+	rankdir := flags.String("rankdir", "LR", "graphs direction")
+	excludeConfigFile := flags.String("exclude-pkg", "", "exclude go pkg config file")
 	verbose = flags.Bool("v", false, "verbose logging")
 	flags.Usage = help
 	flags.Parse(os.Args[1:])
 
+	if *excludeConfigFile != "" {
+		if err := parseExcludeConfig(*excludeConfigFile); err != nil {
+			fmt.Printf("Error read exclude config file: %v", err)
+			return
+		}
+	}
 	if len(flags.Args()) == 1 {
 		searchPath = flags.Arg(0)
 	}
@@ -46,7 +55,7 @@ func main() {
 
 	_ = filepath.WalkDir(searchPath, findGoFiles)
 
-	graph := buildDOTFile()
+	graph := buildDOTFile(*rankdir)
 
 	writer := bufio.NewWriter(outputFile)
 	_, err = writer.WriteString(graph)
@@ -62,6 +71,11 @@ func help() {
 	fmt.Printf("If the directory to scan is not provided, it defaults to './'\n")
 	fmt.Printf("OPTIONS:\n")
 	fmt.Printf("  -out <file>  path to output file (default: write to stdout)\n")
+	fmt.Printf("  -rankdir <direction> graphs direction (default: LR, enum: TB,LR,BT,RL)\n")
+	fmt.Printf("  -exclude-pkg path to exclude pkg config file, format(default: empty):\n")
+	fmt.Printf("     eg: exclude gopkg.in/guregu/null.v3 and models/MyStuct\n")
+	fmt.Printf("       prefix:null.\n")
+	fmt.Printf("       models.MyStuct\n")
 	fmt.Printf("  -v           verbose logging\n")
 	os.Exit(1)
 }

@@ -1,19 +1,26 @@
 package main
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
-func buildDOTFile() string {
+func buildDOTFile(rankdir string) string {
 	g := []byte{}
-	g = append(g, `
+
+	g = append(g, fmt.Sprintf(`
 digraph {
-rankdir="LR"
-`...)
+rankdir="%s"
+`, rankdir)...)
 	for _, s := range structsList {
 		if len(s.Embeds) == 0 {
 			continue
 		}
 		g = append(g, getFullStructName(s.Name, s.Package)+" -> { "...)
 		for e := range s.Embeds {
+			if IsExcludePkg(e, s.Package) {
+				continue
+			}
 			g = append(g, getFullStructName(e, s.Package)+" "...)
 		}
 		g = append(g, "};\n"...)
